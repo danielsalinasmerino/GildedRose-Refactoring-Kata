@@ -2,8 +2,12 @@ import {
   AGED_BRIE_ITEM,
   BACKSTAGE_PASSES_ITEM,
   SULFURAS_ITEM,
-} from "@/constants/items";
-import { itemIs } from "@/utils/item-is";
+} from "./constants/constants";
+import { updateAgedItem } from "./item-updaters/update-aged-item";
+import { updateBackstageItem } from "./item-updaters/update-backstage-item";
+import { updateGeneralItem } from "./item-updaters/update-general-item";
+import { updateLegendaryItem } from "./item-updaters/update-legendary-item";
+import { itemIs } from "./utils/item-is";
 
 export class Item {
   name: string;
@@ -25,58 +29,17 @@ export class GildedRose {
   }
 
   updateQuality() {
-    for (const item of this.items) {
-      const itemIsAgedBrie = itemIs(item, AGED_BRIE_ITEM);
-      const itemIsBackstagePasses = itemIs(item, BACKSTAGE_PASSES_ITEM);
-      const itemIsSulfuras = itemIs(item, SULFURAS_ITEM);
+    this.items = this.items.map((item) => {
+      const itemIsAged = itemIs(item, AGED_BRIE_ITEM);
+      const itemIsBackstage = itemIs(item, BACKSTAGE_PASSES_ITEM);
+      const itemIsLegendary = itemIs(item, SULFURAS_ITEM);
 
-      // TODO: First block
-      if (item.name != AGED_BRIE_ITEM && item.name != BACKSTAGE_PASSES_ITEM) {
-        if (item.quality > 0) {
-          if (item.name != SULFURAS_ITEM) {
-            item.quality = item.quality - 1;
-          }
-        }
-      } else {
-        if (item.quality < 50) {
-          item.quality = item.quality + 1;
-          if (item.name == BACKSTAGE_PASSES_ITEM) {
-            if (item.sellIn < 11) {
-              if (item.quality < 50) {
-                item.quality = item.quality + 1;
-              }
-            }
-            if (item.sellIn < 6) {
-              if (item.quality < 50) {
-                item.quality = item.quality + 1;
-              }
-            }
-          }
-        }
-      }
+      if (itemIsAged) return updateAgedItem(item);
+      if (itemIsBackstage) return updateBackstageItem(item);
+      if (itemIsLegendary) return updateLegendaryItem(item);
 
-      // TODO: Second block
-      if (!itemIsSulfuras) item.sellIn = item.sellIn - 1;
-
-      // TODO: Third block
-      if (item.sellIn < 0) {
-        if (item.name != AGED_BRIE_ITEM) {
-          if (item.name != BACKSTAGE_PASSES_ITEM) {
-            if (item.quality > 0) {
-              if (item.name != SULFURAS_ITEM) {
-                item.quality = item.quality - 1;
-              }
-            }
-          } else {
-            item.quality = item.quality - item.quality;
-          }
-        } else {
-          if (item.quality < 50) {
-            item.quality = item.quality + 1;
-          }
-        }
-      }
-    }
+      return updateGeneralItem(item);
+    });
 
     return this.items;
   }
